@@ -90,7 +90,7 @@ const intervalTree = new IntervalTree();
 
 }`
 
-- Performance: 0.097 - 0.12 ms
+- Performance: 0.093 - 0.12 ms
 
 ### Using Binary Search Tree - Slow
 

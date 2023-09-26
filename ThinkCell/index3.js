@@ -1,43 +1,77 @@
 const sampleInput = require('./data.json');
 
-function makeQuery(input) {
-    // Sort the input intervals based on the start key
-    const sortedInput = input.sort((a, b) => a.key[0] - b.key[0]);
-
-    // Build a binary search tree from the sorted intervals
-    const bst = buildBST(sortedInput);
-
-    // Return the query function
-    return function query(key) {
-        let node = bst;
-        while (node) {
-            if (key < node.key[0]) {
-                node = node.left;
-            } else if (key >= node.key[1]) {
-                node = node.right;
-            } else {
-                return node.val;
-            }
-        }
-        return undefined;
-    };
+// Interval Tree Node Class Definition
+class IntervalTreeNode {
+    constructor(start, end, value) {
+        this.start = start;
+        this.end = end;
+        this.value = value;
+        this.left = null;
+        this.right = null;
+    }
 }
 
-// Helper function to build a binary search tree from sorted intervals
-function buildBST(intervals) {
-    if (intervals.length === 0) {
-        return null;
+// Interval Tree Class Definition
+class IntervalTree {
+    constructor() {
+        this.root = null;
     }
 
-    const mid = Math.floor(intervals.length / 2);
-    const node = {
-        key: intervals[mid].key,
-        val: intervals[mid].val,
-        left: buildBST(intervals.slice(0, mid)),
-        right: buildBST(intervals.slice(mid + 1))
-    };
+    // Insert an interval into the tree
+    insert(start, end, value) {
+        this.root = this._insertNode(this.root, start, end, value);
+    }
 
-    return node;
+    _insertNode(node, start, end, value) {
+        if (!node) {
+            return new IntervalTreeNode(start, end, value);
+        }
+
+        if (start < node.start) {
+            node.left = this._insertNode(node.left, start, end, value);
+        } else {
+            node.right = this._insertNode(node.right, start, end, value);
+        }
+
+        return node;
+    }
+
+    // Find the value for a given key within the intervals
+    find(key) {
+        return this._findValue(this.root, key);
+    }
+
+    _findValue(node, key) {
+        if (!node) {
+        return undefined;
+        }
+
+        if (key >= node.start && key < node.end) {
+        return node.value;
+        }
+
+        if (key < node.start) {
+        return this._findValue(node.left, key);
+        }
+
+        return this._findValue(node.right, key);
+    }
+}
+
+// Make Query
+function makeQuery(input) {
+    const intervalTree = new IntervalTree();
+
+    // Preprocess the input data and build the Interval Tree
+    for (const item of input) {
+        const start = item.key[0];
+        const end = item.key[1];
+        const value = item.val;
+        intervalTree.insert(start, end, value);
+    }
+
+    // Return the query function for efficient lookup using Interval Tree
+    return key => intervalTree.find(key);
 }
 
 query=makeQuery(sampleInput);
@@ -50,4 +84,4 @@ const endTime = performance.now();
 const executionTime = endTime - startTime;
 console.log(`Execution time: ${executionTime} milliseconds`);
 
-// 0.050 - 0.068
+// 0.097 - 0.12
